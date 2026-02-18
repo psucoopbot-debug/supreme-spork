@@ -156,6 +156,164 @@ footer{
 </div>
 
 <script>
+const WEB_APP_URL = "<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>เสนอแนะ / ร้องเรียน — สหกรณ์ออมทรัพย์ ม.อ.</title>
+
+<style>
+:root{
+  --primary:#4f46e5;
+  --secondary:#06b6d4;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{
+  font-family:"Segoe UI",sans-serif;
+  margin:0;
+  background:var(--bg);
+  color:var(--text)
+}
+.container{
+  max-width:900px;
+  margin:40px auto;
+  padding:20px
+}
+.header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:20px
+}
+.logo{
+  width:64px;
+  height:64px;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:20px
+}
+.title h2{margin:0}
+.title p{margin:4px 0 0;color:var(--muted)}
+
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.08)
+}
+label{
+  font-size:13px;
+  font-weight:600;
+  margin-top:12px;
+  display:block
+}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  margin-top:6px;
+  font-size:14px
+}
+textarea{min-height:120px}
+button{
+  margin-top:18px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  color:#fff;
+  border:none;
+  padding:12px 18px;
+  border-radius:12px;
+  font-size:15px;
+  cursor:pointer
+}
+button:disabled{opacity:.6}
+.notice{
+  margin-top:14px;
+  padding:12px;
+  border-radius:10px;
+  font-size:14px
+}
+.success{background:#ecfdf5;color:#065f46}
+.error{background:#fff1f2;color:#7f1d1d}
+
+footer{
+  margin-top:24px;
+  text-align:center;
+  font-size:13px;
+  color:var(--muted)
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="logo">สอ.</div>
+  <div class="title">
+    <h2>เสนอแนะ / ร้องเรียน</h2>
+    <p>สหกรณ์ออมทรัพย์ มหาวิทยาลัยสงขลานครินทร์ จำกัด</p>
+  </div>
+</div>
+
+<div class="card">
+<form id="feedbackForm">
+
+<label>ชื่อ - นามสกุล</label>
+<input id="name" required>
+
+<label>รหัสสมาชิก (ถ้ามี)</label>
+<input
+  id="member"
+  inputmode="numeric"
+  pattern="[0-9]*"
+  maxlength="5"
+  placeholder="เช่น 00998"
+>
+
+<label>อีเมล (สำหรับติดต่อกลับ)</label>
+<input id="email" type="email" required>
+
+<label>ประเภทเรื่อง</label>
+<select id="type" required>
+  <option value="">-- กรุณาเลือก --</option>
+  <option value="เสนอแนะ">เสนอแนะ</option>
+  <option value="ร้องเรียน">ร้องเรียน</option>
+  <option value="สอบถาม">สอบถาม</option>
+</select>
+
+<label>หัวข้อเรื่อง</label>
+<input id="topic" required>
+
+<label>รายละเอียด</label>
+<textarea id="detail" required></textarea>
+
+<label>แนบไฟล์ (ถ้ามี)</label>
+<input id="file" type="file" accept="image/*,.pdf">
+
+<button type="submit" id="submitBtn">📨 ส่งเรื่อง</button>
+<div id="status"></div>
+
+</form>
+</div>
+
+<footer>
+  ระบบรับข้อเสนอแนะและร้องเรียน | สอ.ม.อ.
+</footer>
+
+</div>
+
+<script>
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxb8WTql-2wt_f25ktwZHKo57f0FiMmVHG1Qr3v6_629en4ppvJgLUX6cKlLT17WLKd/exec";
 
 const form = document.getElementById("feedbackForm");
@@ -272,4 +430,121 @@ form.addEventListener("submit", async (e) => {
 
 </body>
 </html>
+";
+
+const form = document.getElementById("feedbackForm");
+const statusBox = document.getElementById("status");
+const submitBtn = document.getElementById("submitBtn");
+const memberInput = document.getElementById("member");
+
+/* =========================
+   คุมรหัสสมาชิก
+   ========================= */
+
+// พิมพ์ได้เฉพาะตัวเลข + ไม่เกิน 5 หลัก
+memberInput.addEventListener("input", () => {
+  memberInput.value = memberInput.value.replace(/\D/g, "");
+  if (memberInput.value.length > 5) {
+    memberInput.value = memberInput.value.slice(0, 5);
+  }
+});
+
+// เติม 0 ด้านหน้าเมื่อออกจากช่อง
+memberInput.addEventListener("blur", () => {
+  if (memberInput.value !== "") {
+    memberInput.value = memberInput.value.padStart(5, "0");
+  }
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  statusBox.innerHTML = "";
+
+  /* ===== ตรวจรหัสสมาชิก ===== */
+  const memberValue = memberInput.value.trim();
+  if (memberValue !== "") {
+    const memberNumber = Number(memberValue);
+    if (memberNumber < 1 || memberNumber > 30000) {
+      statusBox.innerHTML =
+        '<div class="notice error">❌ รหัสสมาชิกต้องอยู่ระหว่าง 00001 – 30000</div>';
+      submitBtn.disabled = false;
+      return;
+    }
+  }
+
+  let fileData = null;
+  const file = document.getElementById("file").files[0];
+
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      statusBox.innerHTML = '<div class="notice error">ไฟล์เกิน 5MB</div>';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const base64 = await new Promise(res => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+
+    fileData = {
+      name: file.name,
+      mimeType: file.type,
+      base64: base64
+    };
+  }
+
+  const payload = {
+    name: document.getElementById("name").value,
+    member: memberValue, // ส่งแบบ 5 หลัก
+    email: document.getElementById("email").value,
+    type: document.getElementById("type").value,
+    topic: document.getElementById("topic").value,
+    detail: document.getElementById("detail").value,
+    file: fileData
+  };
+
+  try {
+    const res = await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+
+    statusBox.innerHTML =
+      `<div class="notice success">✅ ส่งสำเร็จ เลขรับเรื่อง: <b>${result.id}</b></div>`;
+    form.reset();
+
+  } catch {
+    statusBox.innerHTML =
+      `<div class="notice error">❌ เกิดข้อผิดพลาด กรุณาลองใหม่</div>`;
+  }
+
+  submitBtn.disabled = false;
+});
+</script>
+
+<style>
+@media (max-width: 600px) {
+  .container { margin: 16px auto; padding: 12px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .logo { width: 56px; height: 56px; font-size: 18px; }
+  .title h2 { font-size: 20px; }
+  .card { padding: 18px; }
+  button { width: 100%; font-size: 16px; }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  .container { max-width: 720px; }
+}
+@media (min-width: 1200px) {
+  .container { max-width: 1000px; }
+  body { font-size: 16px; }
+}
+</style>
+
+</body>
+</html>
+
 
